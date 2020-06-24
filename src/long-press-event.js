@@ -19,6 +19,7 @@
     var mouseDown = isTouch ? 'touchstart' : 'mousedown';
     var mouseUp = isTouch ? 'touchend' : 'mouseup';
     var mouseMove = isTouch ? 'touchmove' : 'mousemove';
+    var mouseClick = "click";
 
     // track number of pixels the mouse moves during long press
     var startX = 0; // mouse x position when timer started
@@ -114,13 +115,42 @@
             clientY = isTouch ? originalEvent.touches[0].clientY : originalEvent.clientY;
 
         // fire the long-press event
-        var suppressClickEvent = this.dispatchEvent(new CustomEvent('long-press', { bubbles: true, cancelable: true, detail: { clientX: clientX, clientY: clientY } }));
+        var suppresClickEvent = this.dispatchEvent(new MouseEvent('long-press', {
+            bubbles: true,
+            cancelable: true,
+            detail: {
+                clientX: clientX,
+                clientY: clientY,
+                offsetX: isTouch ? originalEvent.touches[0].offsetX : originalEvent.offsetX,
+                offsetY: isTouch ? originalEvent.touches[0].offsetY : originalEvent.offsetY,
+                pageX: isTouch ? originalEvent.touches[0].pageX : originalEvent.pageX,
+                pageY: isTouch ? originalEvent.touches[0].pageY : originalEvent.pageY,
+                screenX: isTouch ? originalEvent.touches[0].screenX : originalEvent.screenX,
+                screenY: isTouch ? originalEvent.touches[0].screenY : originalEvent.screenY,
+            },
 
-        if (suppressClickEvent) {
+            // provide expected standard coordinates
+            clientX: isTouch ? originalEvent.touches[0].clientX : originalEvent.clientX,
+            clientY: isTouch ? originalEvent.touches[0].clientY : originalEvent.clientY,
+            offsetX: isTouch ? originalEvent.touches[0].offsetX : originalEvent.offsetX,
+            offsetY: isTouch ? originalEvent.touches[0].offsetY : originalEvent.offsetY,
+            pageX: isTouch ? originalEvent.touches[0].pageX : originalEvent.pageX,
+            pageY: isTouch ? originalEvent.touches[0].pageY : originalEvent.pageY,
+            screenX: isTouch ? originalEvent.touches[0].screenX : originalEvent.screenX,
+            screenY: isTouch ? originalEvent.touches[0].screenY : originalEvent.screenY,
+        }));
+
+        // FIXME: not the best idea to configure the behavior
+        if (window.longPressSuppressClickEvent) {
 
             // temporarily intercept and clear the next click
             document.addEventListener(mouseUp, function clearMouseUp(e) {
                 document.removeEventListener(mouseUp, clearMouseUp, true);
+                cancelEvent(e);
+            }, true);
+
+            document.addEventListener(mouseClick, function clearMouseClick(e) {
+                document.removeEventListener(mouseClick, clearMouseClick, true);
                 cancelEvent(e);
             }, true);
         }
